@@ -1,30 +1,28 @@
 import { useState } from 'react';
 import FileUpload from '../components/FileUpload';
-import apiClient from '../api/client';
+import { classifyReadCV } from '../api/services';
 
 const ClassifyRead = () => {
-  const [_file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = async (selectedFile: File) => {
+  const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
+    setResult(null);
+    setError(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
     setResult(null);
     setError(null);
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const response = await apiClient.post('/classify-read', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      setResult(response.data);
+      const data = await classifyReadCV(file);
+      setResult(data);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'An error occurred');
     } finally {
@@ -43,6 +41,15 @@ const ClassifyRead = () => {
         </p>
 
         <FileUpload onFileSelect={handleFileSelect} />
+
+        {file && !loading && !result && (
+          <button
+            onClick={handleSubmit}
+            className="mt-8 px-12 py-4 text-lg font-semibold text-white bg-[#e5322d] rounded-lg cursor-pointer border-none shadow-lg hover:bg-[#c62828] hover:shadow-xl transition-all duration-200"
+          >
+            Classify & Read CV
+          </button>
+        )}
 
         {loading && (
           <div className="mt-12 text-center">

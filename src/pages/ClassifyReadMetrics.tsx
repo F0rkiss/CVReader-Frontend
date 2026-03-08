@@ -1,36 +1,37 @@
 import { useState } from 'react';
 import FileUpload from '../components/FileUpload';
-import apiClient from '../api/client';
+import { fullAnalysisCV } from '../api/services';
 
 const ClassifyReadMetrics = () => {
-  const [_file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [expectedText, setExpectedText] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = async (selectedFile: File) => {
+  const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
+    setResult(null);
+    setError(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!file || !expectedText.trim()) return;
     setResult(null);
     setError(null);
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const response = await apiClient.post('/classify-read-metrics', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      setResult(response.data);
+      const data = await fullAnalysisCV(file, expectedText);
+      setResult(data);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  const canSubmit = file && expectedText.trim().length > 0;
 
   return (
     <div className="flex-1 flex flex-col items-center bg-white">
@@ -43,6 +44,32 @@ const ClassifyReadMetrics = () => {
         </p>
 
         <FileUpload onFileSelect={handleFileSelect} />
+
+        {file && (
+          <div className="mt-8 w-full max-w-2xl">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Expected CV Content
+            </label>
+            <p className="text-sm text-gray-500 mb-3">
+              Paste the text that is supposed to be in the CV. This will be used for comparison and metrics.
+            </p>
+            <textarea
+              value={expectedText}
+              onChange={(e) => setExpectedText(e.target.value)}
+              placeholder="Paste the expected CV text here..."
+              className="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-800 resize-vertical focus:outline-none focus:ring-2 focus:ring-[#e5322d] focus:border-transparent"
+            />
+          </div>
+        )}
+
+        {canSubmit && !loading && !result && (
+          <button
+            onClick={handleSubmit}
+            className="mt-8 px-12 py-4 text-lg font-semibold text-white bg-[#e5322d] rounded-lg cursor-pointer border-none shadow-lg hover:bg-[#c62828] hover:shadow-xl transition-all duration-200"
+          >
+            Run Full Analysis
+          </button>
+        )}
 
         {loading && (
           <div className="mt-12 text-center">

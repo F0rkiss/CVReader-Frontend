@@ -16,7 +16,7 @@ const Navbar = () => {
           <Link to="/" className="text-white text-xl font-bold mr-10 tracking-tight hover:opacity-80 transition">
             CV Reader
           </Link>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center">
             {navItems.map((item) => (
               <Link
                 key={item.path}

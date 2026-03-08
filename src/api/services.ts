@@ -1,25 +1,29 @@
 import apiClient from './client';
 
-// Example API service functions
-export const healthCheck = async () => {
-  const response = await apiClient.get('/health');
+export const classifyCV = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await apiClient.post('/api/cv/classify', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 
-// Add more API functions here as needed
-// Example:
-// export const uploadCV = async (file: File) => {
-//   const formData = new FormData();
-//   formData.append('file', file);
-//   const response = await apiClient.post('/upload', formData, {
-//     headers: {
-//       'Content-Type': 'multipart/form-data',
-//     },
-//   });
-//   return response.data;
-// };
+export const classifyReadCV = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await apiClient.post('/api/cv/read', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
 
-// export const getCVData = async (id: string) => {
-//   const response = await apiClient.get(`/cv/${id}`);
-//   return response.data;
-// };
+export const fullAnalysisCV = async (file: File, expectedText: string) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('expected_text', expectedText);
+  const response = await apiClient.post('/api/cv/read-with-metrics', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};

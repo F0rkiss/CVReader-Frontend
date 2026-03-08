@@ -10,12 +10,12 @@ const Home = () => {
     },
     {
       title: 'Classify & Read',
-      description: 'Extract detailed information from your CV',
+      description: 'Extract detailed information from your CV and read its content',
       path: '/classify-read',
       icon: '📖',
     },
     {
-      title: 'Classify & Read with Metrics',
+      title: 'Full Analysis',
       description: 'Get comprehensive analysis with detailed metrics',
       path: '/classify-read-metrics',
       icon: '📊',
@@ -23,9 +23,9 @@ const Home = () => {
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center bg-white">
+    <div className="flex-1 flex flex-col items-center bg-white mt-2">
       <div className="w-full    max-w-4xl mx-auto px-4 pt-16 pb-8 flex flex-col items-center">
-        <div className="text-center mb-20">
+        <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
             Welcome to CV Reader
           </h1>
@@ -45,12 +45,10 @@ const Home = () => {
               <p className="text-gray-500 text-sm mb-4">
                 {feature.description}
               </p>
-              <div>
-                <button>
-                    <span className="text-sm font-semibold text-[#e5322d] hover:text-[#c62828] transition-colors">
+              <div className="pt-2">
+                <span className="inline-block px-8 py-3 text-base font-semibold text-white bg-[#e5322d] rounded-lg hover:bg-[#c62828] transition-colors">
                     Get Started
-                    </span>
-                </button>
+                </span>
               </div>
             </Link>
           ))}
