@@ -4,9 +4,12 @@ const Navbar = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/classify', label: 'CLASSIFY' },
+    // { path: '/classify', label: 'CLASSIFY' },
     { path: '/classify-read', label: 'CLASSIFY & READ' },
-    { path: '/classify-read-metrics', label: 'FULL ANALYSIS' }
+    // { path: '/classify-read-metrics', label: 'FULL ANALYSIS' },
+    { path: '/test-tesseract', label: 'TESSERACT' },
+    { path: '/test-easyocr', label: 'EASYOCR' },
+    { path: '/test-paddleocr', label: 'PADDLEOCR' }
   ];
 
   return (

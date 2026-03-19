@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, memo, useEffect } from 'react';
 import type { DragEvent, ChangeEvent } from 'react';
 
 interface FileUploadProps {
@@ -6,7 +6,7 @@ interface FileUploadProps {
   acceptedTypes?: string;
 }
 
-const FileUpload = ({ onFileSelect, acceptedTypes = ".pdf,.doc,.docx" }: FileUploadProps) => {
+const FileUpload = memo(({ onFileSelect, acceptedTypes = ".pdf,.doc,.docx" }: FileUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -15,6 +15,12 @@ const FileUpload = ({ onFileSelect, acceptedTypes = ".pdf,.doc,.docx" }: FileUpl
     if (!selectedFile) return null;
     return URL.createObjectURL(selectedFile);
   }, [selectedFile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const isPdf = selectedFile?.type === 'application/pdf';
 
@@ -137,6 +143,6 @@ const FileUpload = ({ onFileSelect, acceptedTypes = ".pdf,.doc,.docx" }: FileUpl
       )}
     </div>
   );
-};
+});
 
 export default FileUpload;

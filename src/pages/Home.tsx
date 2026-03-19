@@ -22,6 +22,27 @@ const Home = () => {
     },
   ];
 
+  const ocrEngines = [
+    {
+      title: 'Tesseract',
+      description: 'Test Tesseract OCR directly and get CER & WER metrics',
+      path: '/test-tesseract',
+      icon: '🔤',
+    },
+    {
+      title: 'EasyOCR',
+      description: 'Test EasyOCR directly and get CER & WER metrics',
+      path: '/test-easyocr',
+      icon: '👁️',
+    },
+    {
+      title: 'PaddleOCR',
+      description: 'Test PaddleOCR directly and get CER & WER metrics',
+      path: '/test-paddleocr',
+      icon: '🏓',
+    },
+  ];
+
   return (
     <div className="flex-1 flex flex-col items-center bg-white mt-2">
       <div className="w-full    max-w-4xl mx-auto px-4 pt-16 pb-8 flex flex-col items-center">
@@ -48,6 +69,35 @@ const Home = () => {
               <div className="pt-2">
                 <span className="inline-block px-8 py-3 text-base font-semibold text-white bg-[#e5322d] rounded-lg hover:bg-[#c62828] transition-colors">
                     Get Started
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="text-center mt-14 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            OCR Engine Testing
+          </h2>
+          <p className="text-gray-500">
+            Test each OCR engine individually with CER & WER metrics.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {ocrEngines.map((engine) => (
+            <Link key={engine.path} to={engine.path}
+            className="bg-white rounded-xl border mb-2 border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 text-center">
+              <div className="text-5xl mb-3">{engine.icon}</div>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">
+                {engine.title}
+              </h2>
+              <p className="text-gray-500 text-sm mb-4">
+                {engine.description}
+              </p>
+              <div className="pt-2">
+                <span className="inline-block px-8 py-3 text-base font-semibold text-white bg-[#e5322d] rounded-lg hover:bg-[#c62828] transition-colors">
+                    Test Now
                 </span>
               </div>
             </Link>

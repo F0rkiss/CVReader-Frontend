@@ -4,6 +4,9 @@ import Home from './pages/Home';
 import Classify from './pages/Classify';
 import ClassifyRead from './pages/ClassifyRead';
 import ClassifyReadMetrics from './pages/ClassifyReadMetrics';
+import TestTesseract from './pages/TestTesseract';
+import TestEasyOCR from './pages/TestEasyOCR';
+import TestPaddleOCR from './pages/TestPaddleOCR';
 import './App.css'
 
 function App() {
@@ -17,6 +20,9 @@ function App() {
             <Route path="/classify" element={<Classify />} />
             <Route path="/classify-read" element={<ClassifyRead />} />
             <Route path="/classify-read-metrics" element={<ClassifyReadMetrics />} />
+            <Route path="/test-tesseract" element={<TestTesseract />} />
+            <Route path="/test-easyocr" element={<TestEasyOCR />} />
+            <Route path="/test-paddleocr" element={<TestPaddleOCR />} />
           </Routes>
         </main>
       </div>
