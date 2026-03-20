@@ -13,6 +13,7 @@ const FileUpload = memo(
   }: FileUploadProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const previewUrl = useMemo(() => {
@@ -26,7 +27,15 @@ const FileUpload = memo(
       };
     }, [previewUrl]);
 
-    const isPdf = selectedFile?.type === "application/pdf";
+    const selectedFileName = selectedFile?.name.toLowerCase() || "";
+    const hasExtension = (extensions: string[]) =>
+      extensions.some((extension) => selectedFileName.endsWith(extension));
+
+    const isPdf =
+      selectedFile?.type === "application/pdf" || hasExtension([".pdf"]);
+    const isSupportedImage =
+      selectedFile?.type.startsWith("image/") ||
+      hasExtension([".png", ".webp", ".jpg", ".jpeg", ".avif", ".av1"]);
 
     const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -53,6 +62,7 @@ const FileUpload = memo(
       const files = e.dataTransfer.files;
       if (files && files.length > 0) {
         const file = files[0];
+        setImagePreviewFailed(false);
         setSelectedFile(file);
         onFileSelect(file);
       }
@@ -62,6 +72,7 @@ const FileUpload = memo(
       const files = e.target.files;
       if (files && files.length > 0) {
         const file = files[0];
+        setImagePreviewFailed(false);
         setSelectedFile(file);
         onFileSelect(file);
       }
@@ -125,8 +136,23 @@ const FileUpload = memo(
               </div>
             )}
 
+            {/* Image Preview */}
+            {!isPdf &&
+              isSupportedImage &&
+              previewUrl &&
+              !imagePreviewFailed && (
+                <div className="w-full max-w-2xl mt-2 border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-gray-50 p-2">
+                  <img
+                    src={previewUrl}
+                    alt="CV Preview"
+                    className="w-full h-auto max-h-[500px] object-contain rounded"
+                    onError={() => setImagePreviewFailed(true)}
+                  />
+                </div>
+              )}
+
             {/* Non-PDF file info */}
-            {!isPdf && (
+            {!isPdf && (!isSupportedImage || imagePreviewFailed) && (
               <div className="mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
                 Preview not available for this file type. The file will be sent
                 to the server for processing.

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import FileUpload from "../components/FileUpload";
+import ResultViewer from "../components/ResultViewer";
 import { classifyCV } from "../api/services";
 
 const Classify = () => {
@@ -69,9 +70,7 @@ const Classify = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Classification Results
             </h3>
-            <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-sm">
-              {JSON.stringify(result, null, 2)}
-            </pre>
+            <ResultViewer data={result} />
           </div>
         )}
       </div>
