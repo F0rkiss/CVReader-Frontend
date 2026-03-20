@@ -21,7 +21,7 @@ export const classifyReadCV = async (file: File) => {
 export const fullAnalysisCV = async (file: File, expectedText: string) => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('expected_text', expectedText);
+  formData.append('ground_truth', expectedText);
   const response = await apiClient.post('/api/cv/read-with-metrics', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -31,7 +31,7 @@ export const fullAnalysisCV = async (file: File, expectedText: string) => {
 export const testOCR = async (file: File, expectedText: string, engine: 'tesseract' | 'easyocr' | 'paddleocr') => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('expected_text', expectedText);
+  formData.append('ground_truth', expectedText);
   const response = await apiClient.post(`/api/cv/test/${engine}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });

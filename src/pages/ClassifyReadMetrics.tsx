@@ -1,31 +1,37 @@
-import { useState, useCallback } from 'react';
-import FileUpload from '../components/FileUpload';
-import { fullAnalysisCV } from '../api/services';
+import { useState, useCallback } from "react";
+import FileUpload from "../components/FileUpload";
+import { fullAnalysisCV } from "../api/services";
 
 const ClassifyReadMetrics = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [expectedText, setExpectedText] = useState('');
+  const [expectedText, setExpectedText] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
-    setError(null);
   }, []);
 
   const handleSubmit = async () => {
     if (!file || !expectedText.trim()) return;
     setResult(null);
-    setError(null);
     setLoading(true);
 
     try {
       const data = await fullAnalysisCV(file, expectedText);
       setResult(data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'An error occurred');
+      const errorDetail =
+        err?.response?.data?.detail ??
+        err?.response?.data?.message ??
+        err?.message ??
+        "An error occurred";
+      const errorMessage =
+        typeof errorDetail === "string"
+          ? errorDetail
+          : JSON.stringify(errorDetail);
+      window.alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -40,7 +46,8 @@ const ClassifyReadMetrics = () => {
           Full Analysis
         </h1>
         <p className="text-center text-gray-500 mb-10 max-w-xl">
-          Classify, extract information, and analyze your CV with detailed metrics.
+          Classify, extract information, and analyze your CV with detailed
+          metrics.
         </p>
 
         <FileUpload onFileSelect={handleFileSelect} />
@@ -51,7 +58,8 @@ const ClassifyReadMetrics = () => {
               Expected CV Content
             </label>
             <p className="text-sm text-gray-500 mb-3">
-              Paste the text that is supposed to be in the CV. This will be used for comparison and metrics.
+              Paste the text that is supposed to be in the CV. This will be used
+              for comparison and metrics.
             </p>
             <textarea
               value={expectedText}
@@ -78,16 +86,11 @@ const ClassifyReadMetrics = () => {
           </div>
         )}
 
-        {error && (
-          <div className="mt-10 w-full bg-red-50 border border-red-200 rounded-lg p-5">
-            <h3 className="text-base font-semibold text-red-800 mb-1">Error</h3>
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
-
         {result && !loading && (
           <div className="mt-10 w-full bg-white shadow-lg rounded-lg p-6 border">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Full Analysis Results</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Full Analysis Results
+            </h3>
             <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-sm">
               {JSON.stringify(result, null, 2)}
             </pre>
