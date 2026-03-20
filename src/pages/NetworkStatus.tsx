@@ -14,12 +14,12 @@ const NetworkStatus = () => {
   const [endpoints, setEndpoints] = useState<EndpointStatus[]>([
     {
       name: "Health Check",
-      url: "http://192.168.10.43:8000/health",
+      url: "http://localhost:8000/health",
       status: "checking",
     },
     {
       name: "API Documentation",
-      url: "http://192.168.10.43:8000/docs",
+      url: "http://localhost:8000/docs",
       status: "checking",
     },
   ]);
@@ -95,7 +95,7 @@ const NetworkStatus = () => {
         </h1>
         <p className="text-center text-gray-500 mb-10 max-w-xl">
           Check connectivity to the backend server at{" "}
-          <span className="font-semibold text-gray-700">192.168.10.43</span>
+          <span className="font-semibold text-gray-700">localhost</span>
         </p>
 
         {/* Overall Status */}
