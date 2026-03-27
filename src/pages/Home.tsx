@@ -2,24 +2,24 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const features = [
-    {
-      title: 'Classify',
-      description: 'Quickly classify your CV into relevant categories',
-      path: '/classify',
-      icon: '📋',
-    },
+    // {
+    //   title: 'Classify',
+    //   description: 'Quickly classify your CV into relevant categories',
+    //   path: '/classify',
+    //   icon: '📋',
+    // },
     {
       title: 'Classify & Read',
       description: 'Extract detailed information from your CV and read its content',
       path: '/classify-read',
       icon: '📖',
     },
-    {
-      title: 'Full Analysis',
-      description: 'Get comprehensive analysis with detailed metrics',
-      path: '/classify-read-metrics',
-      icon: '📊',
-    },
+    // {
+    //   title: 'Full Analysis',
+    //   description: 'Get comprehensive analysis with detailed metrics',
+    //   path: '/classify-read-metrics',
+    //   icon: '📊',
+    // },
   ];
 
   const ocrEngines = [
@@ -55,7 +55,7 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid  gap-6 max-w-4xl mx-auto">
           {features.map((feature) => (
             <Link key={feature.path} to={feature.path} 
             className="bg-white rounded-xl border mb-2 border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 text-center">
