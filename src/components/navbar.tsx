@@ -5,12 +5,12 @@ const Navbar = () => {
 
   const navItems = [
     // { path: '/classify', label: 'CLASSIFY' },
-    { path: "/classify-read", label: "CLASSIFY & READ" },
+    // { path: "/classify-read", label: "CLASSIFY & READ" },
     // { path: '/classify-read-metrics', label: 'FULL ANALYSIS' },
     { path: "/test-tesseract", label: "TESSERACT" },
     { path: "/test-easyocr", label: "EASYOCR" },
     { path: "/test-paddleocr", label: "PADDLEOCR" },
-    { path: "/network-status", label: "NETWORK" },
+    // { path: "/network-status", label: "NETWORK" },
   ];
 
   return (
