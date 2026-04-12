@@ -1,4 +1,4 @@
-import { useState } from "react";
+import CopyButton from "./CopyButton";
 
 type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
 
@@ -9,8 +9,6 @@ interface JsonObject {
 interface ResultViewerProps {
   data: JsonValue;
 }
-
-type CopyTarget = "text" | "metrics" | null;
 
 const formatKey = (key: string): string => {
   return key
@@ -119,6 +117,106 @@ const keyMatches = (key: string, candidates: string[]) => {
   return candidates.some((candidate) => normalized === candidate.toLowerCase());
 };
 
+const PREPROCESSED_IMAGE_KEYS = [
+  "preprocessed_image",
+  "preprocessedImage",
+  // "preprocessed_image_base64",
+  // "preprocessedImageBase64",
+  "preprocessed_image_url",
+  "preprocessedImageUrl",
+  "preprocessed_image_path",
+  "preprocessedImagePath",
+  "preprocessed_image_uri",
+  "preprocessedImageUri",
+];
+
+const PREPROCESSED_IMAGE_VALUE_KEYS = [
+  "image",
+  "image_base64",
+  "imageBase64",
+  "base64",
+  "data",
+  "url",
+  "path",
+  "uri",
+  "image_url",
+  "imageUrl",
+  "image_path",
+  "imagePath",
+  "image_uri",
+  "imageUri",
+];
+
+const PREPROCESSED_IMAGE_MIME_KEYS = [
+  "mime_type",
+  "mimeType",
+  "content_type",
+  "contentType",
+];
+
+const guessMimeType = (value: string): string => {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("/9j")) return "image/jpeg";
+  if (trimmed.startsWith("iVBORw0")) return "image/png";
+  if (trimmed.startsWith("R0lGOD")) return "image/gif";
+  if (trimmed.startsWith("UklGR")) return "image/webp";
+  return "image/png";
+};
+
+const normalizeImageSource = (
+  raw: string,
+  mimeType?: string,
+): string | null => {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("./") ||
+    trimmed.startsWith("../")
+  ) {
+    return trimmed;
+  }
+
+  const cleaned = trimmed.replace(/\s+/g, "");
+  const resolvedMimeType = mimeType || guessMimeType(cleaned);
+  return `data:${resolvedMimeType};base64,${cleaned}`;
+};
+
+const extractPreprocessedImageDetails = (value: JsonValue | undefined) => {
+  if (value === undefined) {
+    return { source: undefined, mimeType: undefined };
+  }
+  if (typeof value === "string") {
+    return { source: value, mimeType: undefined };
+  }
+
+  if (isObject(value)) {
+    const sourceCandidate = pickFirstDefinedDeep(
+      value,
+      PREPROCESSED_IMAGE_VALUE_KEYS,
+    );
+    const mimeTypeCandidate = pickFirstDefinedDeep(
+      value,
+      PREPROCESSED_IMAGE_MIME_KEYS,
+    );
+
+    return {
+      source: typeof sourceCandidate === "string" ? sourceCandidate : undefined,
+      mimeType:
+        typeof mimeTypeCandidate === "string" ? mimeTypeCandidate : undefined,
+    };
+  }
+
+  return { source: undefined, mimeType: undefined };
+};
+
 const ResultNode = ({ label, value }: { label?: string; value: JsonValue }) => {
   if (isPrimitive(value)) {
     return (
@@ -202,22 +300,6 @@ const ResultNode = ({ label, value }: { label?: string; value: JsonValue }) => {
 };
 
 const ResultViewer = ({ data }: ResultViewerProps) => {
-  const [copiedTarget, setCopiedTarget] = useState<CopyTarget>(null);
-
-  const handleCopy = async (text: string, target: CopyTarget) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedTarget(target);
-      window.setTimeout(
-        () =>
-          setCopiedTarget((current) => (current === target ? null : current)),
-        1800,
-      );
-    } catch {
-      window.alert("Failed to copy. Please copy manually.");
-    }
-  };
-
   if (!isObject(data)) {
     return <ResultNode value={data} />;
   }
@@ -227,6 +309,19 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
     "extractedText",
     "text",
   ]);
+  const preprocessedImageValue = pickFirstDefinedDeep(
+    data,
+    PREPROCESSED_IMAGE_KEYS,
+  );
+  const preprocessedImageDetails = extractPreprocessedImageDetails(
+    preprocessedImageValue,
+  );
+  const preprocessedImageSource = preprocessedImageDetails.source
+    ? normalizeImageSource(
+        preprocessedImageDetails.source,
+        preprocessedImageDetails.mimeType,
+      )
+    : null;
   const metricsCandidates: Array<{ label: string; keys: string[] }> = [
     {
       label: "Runtime",
@@ -269,6 +364,7 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
       hiddenKeys.add(key),
     );
   }
+  PREPROCESSED_IMAGE_KEYS.forEach((key) => hiddenKeys.add(key));
   metricsCandidates.forEach((candidate) => {
     candidate.keys.forEach((key) => hiddenKeys.add(key));
   });
@@ -286,16 +382,31 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-600">
               Extracted Text
             </h4>
-            <button
-              type="button"
-              onClick={() => handleCopy(toCopyText(extractedText), "text")}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              {copiedTarget === "text" ? "Copied" : "Copy Extracted Text"}
-            </button>
+            <CopyButton
+              text={toCopyText(extractedText)}
+              label="Copy Extracted Text"
+              copiedLabel="Copied"
+            />
           </div>
           <div className="max-h-80 overflow-auto rounded-md bg-gray-50 p-3 text-sm leading-6 text-gray-800 whitespace-pre-wrap">
             {toCopyText(extractedText)}
+          </div>
+        </div>
+      )}
+
+      {preprocessedImageSource && (
+        <div className="rounded-md border border-gray-200 bg-white p-4">
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-600">
+            Preprocessed Image
+          </h4>
+          <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+            <img
+              src={preprocessedImageSource}
+              alt="Preprocessed"
+              loading="lazy"
+              decoding="async"
+              className="w-full max-h-[480px] object-contain rounded"
+            />
           </div>
         </div>
       )}
@@ -306,23 +417,16 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-600">
               Metrics
             </h4>
-            <button
-              type="button"
-              onClick={() =>
-                handleCopy(
-                  metrics
-                    .map(
-                      (metric) =>
-                        `${metric.label}: ${toCopyText(metric.value as JsonValue)}`,
-                    )
-                    .join("\n"),
-                  "metrics",
+            <CopyButton
+              text={metrics
+                .map(
+                  (metric) =>
+                    `${metric.label}: ${toCopyText(metric.value as JsonValue)}`,
                 )
-              }
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              {copiedTarget === "metrics" ? "Copied" : "Copy Metrics"}
-            </button>
+                .join("\n")}
+              label="Copy Metrics"
+              copiedLabel="Copied"
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {metrics.map((metric) => (
@@ -330,10 +434,17 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
                 key={metric.label}
                 className="rounded-md border border-gray-200 bg-gray-50 p-3"
               >
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {metric.label}
-                </p>
-                <p className="text-sm text-gray-800 break-words">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {metric.label}
+                  </p>
+                  <CopyButton
+                    text={toCopyText(metric.value as JsonValue)}
+                    label="Copy"
+                    copiedLabel="Copied"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-gray-800 break-words">
                   {toCopyText(metric.value as JsonValue)}
                 </p>
               </div>
@@ -344,7 +455,7 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
 
       {remainingEntries.length > 0 && (
         <ResultNode
-          label={hasSpecialBlocks ? "Additional Details" : undefined}
+          label={hasSpecialBlocks ? "Technical Details" : undefined}
           value={Object.fromEntries(remainingEntries)}
         />
       )}

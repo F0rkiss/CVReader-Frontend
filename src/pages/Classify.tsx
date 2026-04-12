@@ -1,26 +1,41 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import ActionButtons from "../components/ActionButtons";
 import FileUpload from "../components/FileUpload";
 import ResultViewer from "../components/ResultViewer";
+import StatusBadge from "../components/StatusBadge";
 import { classifyCV } from "../api/services";
 
 const Classify = () => {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<
+    "idle" | "processing" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [openFileDialog, setOpenFileDialog] = useState<(() => void) | null>(
+    null,
+  );
 
-  const handleFileSelect = (selectedFile: File) => {
+  const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
-  };
+    setStatus("idle");
+    setErrorMessage(null);
+  }, []);
+
+  const handleOpenFileDialogReady = useCallback((openDialog: () => void) => {
+    setOpenFileDialog(() => openDialog);
+  }, []);
 
   const handleSubmit = async () => {
-    if (!file) return;
-    setResult(null);
-    setLoading(true);
+    if (!file || status === "processing") return;
+    setStatus("processing");
+    setErrorMessage(null);
 
     try {
       const data = await classifyCV(file);
       setResult(data);
+      setStatus("success");
     } catch (err: any) {
       const errorDetail =
         err?.response?.data?.detail ??
@@ -31,11 +46,13 @@ const Classify = () => {
         typeof errorDetail === "string"
           ? errorDetail
           : JSON.stringify(errorDetail);
-      window.alert(errorMessage);
-    } finally {
-      setLoading(false);
+      setErrorMessage(errorMessage);
+      setStatus("error");
     }
   };
+
+  const loading = status === "processing";
+  const primaryLabel = result ? "Re-run Classification" : "Process CV";
 
   return (
     <div className="flex-1 flex flex-col items-center bg-white">
@@ -47,25 +64,51 @@ const Classify = () => {
           Classify your CV into relevant categories with incredible accuracy.
         </p>
 
-        <FileUpload onFileSelect={handleFileSelect} />
+        <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Selected file
+                </p>
+                <p className="text-base font-semibold text-gray-900">
+                  {file ? file.name : "No file selected"}
+                </p>
+                {file && (
+                  <p className="text-sm text-gray-500">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
+                )}
+              </div>
+              <StatusBadge status={status} />
+            </div>
 
-        {file && !loading && !result && (
-          <button
-            onClick={handleSubmit}
-            className="mt-8 px-12 py-4 text-lg font-semibold text-white bg-[#e5322d] rounded-lg cursor-pointer border-none shadow-lg hover:bg-[#c62828] hover:shadow-xl transition-all duration-200"
-          >
-            Classify CV
-          </button>
-        )}
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              onOpenFileDialogReady={handleOpenFileDialogReady}
+              hideChangeButton
+            />
 
-        {loading && (
-          <div className="mt-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-[#e5322d]"></div>
-            <p className="mt-4 text-gray-500">Processing your CV...</p>
+            {file && (
+              <div className="flex flex-col gap-2">
+                <ActionButtons
+                  primaryLabel={primaryLabel}
+                  primaryLoading={loading}
+                  primaryDisabled={!file}
+                  onPrimary={handleSubmit}
+                  secondaryLabel="Replace File"
+                  secondaryDisabled={!openFileDialog || loading}
+                  onSecondary={() => openFileDialog?.()}
+                />
+                {status === "error" && errorMessage && (
+                  <p className="text-sm text-red-600">{errorMessage}</p>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {result && !loading && (
+        {result && (
           <div className="mt-10 w-full bg-white shadow-lg rounded-lg p-6 border">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Classification Results

@@ -1,15 +1,19 @@
-import { useState, useRef, useMemo, memo, useEffect } from "react";
+import { useState, useRef, useMemo, memo, useEffect, useCallback } from "react";
 import type { DragEvent, ChangeEvent } from "react";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
   acceptedTypes?: string;
+  onOpenFileDialogReady?: (openDialog: () => void) => void;
+  hideChangeButton?: boolean;
 }
 
 const FileUpload = memo(
   ({
     onFileSelect,
     acceptedTypes = ".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.avif,.av1,image/jpeg,image/png,image/webp,image/avif",
+    onOpenFileDialogReady,
+    hideChangeButton = false,
   }: FileUploadProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -78,9 +82,13 @@ const FileUpload = memo(
       }
     };
 
-    const handleClick = () => {
+    const handleClick = useCallback(() => {
       fileInputRef.current?.click();
-    };
+    }, []);
+
+    useEffect(() => {
+      onOpenFileDialogReady?.(handleClick);
+    }, [handleClick, onOpenFileDialogReady]);
 
     return (
       <div
@@ -159,12 +167,14 @@ const FileUpload = memo(
               </div>
             )}
 
-            <button
-              onClick={handleClick}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer bg-transparent border-none"
-            >
-              Change file
-            </button>
+            {!hideChangeButton && (
+              <button
+                onClick={handleClick}
+                className="rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+              >
+                Replace File
+              </button>
+            )}
           </div>
         ) : (
           <>
