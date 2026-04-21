@@ -438,11 +438,11 @@ const ResultViewer = ({ data }: ResultViewerProps) => {
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     {metric.label}
                   </p>
-                  <CopyButton
+                  {/* <CopyButton
                     text={toCopyText(metric.value as JsonValue)}
                     label="Copy"
                     copiedLabel="Copied"
-                  />
+                  /> */}
                 </div>
                 <p className="mt-2 text-sm text-gray-800 break-words">
                   {toCopyText(metric.value as JsonValue)}
