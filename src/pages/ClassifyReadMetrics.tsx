@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import ActionButtons from "../components/ActionButtons";
 import FileUpload from "../components/FileUpload";
-import IncludePreprocessedImageToggle from "../components/IncludePreprocessedImageToggle";
+import ResultWorkspaceLayout from "../components/ResultWorkspaceLayout";
 import ResultViewer from "../components/ResultViewer";
 import StatusBadge from "../components/StatusBadge";
 import { fullAnalysisCV } from "../api/services";
@@ -9,8 +9,7 @@ import { fullAnalysisCV } from "../api/services";
 const ClassifyReadMetrics = () => {
   const [file, setFile] = useState<File | null>(null);
   const [expectedText, setExpectedText] = useState("");
-  const [includePreprocessedImage, setIncludePreprocessedImage] =
-    useState(false);
+  const includePreprocessedImage = false;
   const [result, setResult] = useState<any>(null);
   const [status, setStatus] = useState<
     "idle" | "processing" | "success" | "error"
@@ -66,97 +65,81 @@ const ClassifyReadMetrics = () => {
     : "Process Full Analysis";
 
   return (
-    <div className="flex-1 flex flex-col items-center bg-white">
-      <div className="w-full max-w-4xl mx-auto px-4 pt-16 pb-8 flex flex-col items-center">
-        <h1 className="text-4xl font-bold text-center mb-3 text-gray-900">
-          Full Analysis
-        </h1>
-        <p className="text-center text-gray-500 mb-10 max-w-xl">
-          Classify, extract information, and analyze your CV with detailed
-          metrics.
-        </p>
+    <ResultWorkspaceLayout
+      title="Full Analysis"
+      description="Classify, extract information, and analyze your CV with detailed metrics."
+      leftLabel="Input"
+      leftTitle="Upload CV & Ground Truth"
+      leftHeaderAside={<StatusBadge status={status} />}
+      leftContent={
+        <>
+          <FileUpload
+            onFileSelect={handleFileSelect}
+            onOpenFileDialogReady={handleOpenFileDialogReady}
+            hideChangeButton
+            mode="workspace"
+          />
 
-        <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Selected file
-                </p>
-                <p className="text-base font-semibold text-gray-900">
-                  {file ? file.name : "No file selected"}
-                </p>
-                {file && (
-                  <p className="text-sm text-gray-500">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </p>
-                )}
-              </div>
-              <StatusBadge status={status} />
+          {file && (
+            <div className="mt-4 w-full">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
+                Expected CV Content
+              </label>
+              <p className="mb-3 text-sm text-gray-500">
+                Paste the text that is supposed to be in the CV. This will be
+                used for comparison and metrics.
+              </p>
+              <textarea
+                value={expectedText}
+                onChange={(e) => setExpectedText(e.target.value)}
+                placeholder="Paste the expected CV text here..."
+                className="h-48 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#e5322d]"
+              />
             </div>
+          )}
 
-            <FileUpload
-              onFileSelect={handleFileSelect}
-              onOpenFileDialogReady={handleOpenFileDialogReady}
-              hideChangeButton
-            />
-
-            {file && (
-              <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Expected CV Content
-                </label>
-                <p className="text-sm text-gray-500 mb-3">
-                  Paste the text that is supposed to be in the CV. This will be
-                  used for comparison and metrics.
+          {file && (
+            <div className="mt-4 flex flex-col gap-2">
+              <ActionButtons
+                primaryLabel={primaryLabel}
+                primaryLoading={loading}
+                primaryDisabled={!canSubmit}
+                onPrimary={handleSubmit}
+                secondaryLabel="Replace File"
+                secondaryDisabled={!openFileDialog || loading}
+                onSecondary={() => openFileDialog?.()}
+              />
+              {!canSubmit && (
+                <p className="text-sm text-amber-700">
+                  Add expected text to enable processing.
                 </p>
-                <textarea
-                  value={expectedText}
-                  onChange={(e) => setExpectedText(e.target.value)}
-                  placeholder="Paste the expected CV text here..."
-                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-800 resize-vertical focus:outline-none focus:ring-2 focus:ring-[#e5322d] focus:border-transparent"
-                />
-              </div>
-            )}
-
-            {file && (
-              <div className="flex flex-col gap-2">
-                {/* <IncludePreprocessedImageToggle
-                  value={includePreprocessedImage}
-                  onChange={setIncludePreprocessedImage}
-                /> */}
-                <ActionButtons
-                  primaryLabel={primaryLabel}
-                  primaryLoading={loading}
-                  primaryDisabled={!canSubmit}
-                  onPrimary={handleSubmit}
-                  secondaryLabel="Replace File"
-                  secondaryDisabled={!openFileDialog || loading}
-                  onSecondary={() => openFileDialog?.()}
-                />
-                {!canSubmit && (
-                  <p className="text-sm text-amber-700">
-                    Add expected text to enable processing.
-                  </p>
-                )}
-                {status === "error" && errorMessage && (
-                  <p className="text-sm text-red-600">{errorMessage}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {result && (
-          <div className="mt-10 w-full bg-white shadow-lg rounded-lg p-6 border">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              )}
+              {status === "error" && errorMessage && (
+                <p className="text-sm text-red-600">{errorMessage}</p>
+              )}
+            </div>
+          )}
+        </>
+      }
+      rightLabel="Result"
+      rightTitle="Full Analysis Output"
+      rightContent={
+        result ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <h3 className="mb-4 text-xl font-bold text-gray-800">
               Full Analysis Results
             </h3>
             <ResultViewer data={result} />
           </div>
-        )}
-      </div>
-    </div>
+        ) : (
+          <div className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-[#eef2f7] p-8 text-center">
+            <p className="text-lg font-semibold text-gray-700">
+              Results will appear here
+            </p>
+          </div>
+        )
+      }
+    />
   );
 };
 

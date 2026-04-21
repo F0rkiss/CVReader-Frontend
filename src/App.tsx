@@ -13,9 +13,9 @@ import "./App.css";
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex h-screen flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1">
+        <main className="flex-1 min-h-0 overflow-auto">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/network-status" element={<NetworkStatus />} />

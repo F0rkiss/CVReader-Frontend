@@ -6,6 +6,7 @@ interface FileUploadProps {
   acceptedTypes?: string;
   onOpenFileDialogReady?: (openDialog: () => void) => void;
   hideChangeButton?: boolean;
+  mode?: "default" | "workspace";
 }
 
 const FileUpload = memo(
@@ -14,6 +15,7 @@ const FileUpload = memo(
     acceptedTypes = ".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.avif,.av1,image/jpeg,image/png,image/webp,image/avif",
     onOpenFileDialogReady,
     hideChangeButton = false,
+    mode = "default",
   }: FileUploadProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,6 +42,7 @@ const FileUpload = memo(
     const isSupportedImage =
       selectedFile?.type.startsWith("image/") ||
       hasExtension([".png", ".webp", ".jpg", ".jpeg", ".avif", ".av1"]);
+    const isWorkspaceMode = mode === "workspace";
 
     const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -107,8 +110,10 @@ const FileUpload = memo(
         />
 
         {selectedFile ? (
-          <div className="flex flex-col items-center gap-3 w-full">
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-6 py-4">
+          <div className="flex w-full flex-col items-center gap-3">
+            <div
+              className={`flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-6 py-4 ${isWorkspaceMode ? "w-full justify-center" : ""}`}
+            >
               <svg
                 className="w-6 h-6 text-green-600"
                 fill="none"
@@ -134,7 +139,9 @@ const FileUpload = memo(
 
             {/* PDF Preview */}
             {isPdf && previewUrl && (
-              <div className="w-full max-w-2xl mt-2 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+              <div
+                className={`mt-2 w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm ${isWorkspaceMode ? "" : "max-w-2xl"}`}
+              >
                 <iframe
                   src={previewUrl}
                   title="CV Preview"
@@ -149,7 +156,9 @@ const FileUpload = memo(
               isSupportedImage &&
               previewUrl &&
               !imagePreviewFailed && (
-                <div className="w-full max-w-2xl mt-2 border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-gray-50 p-2">
+                <div
+                  className={`mt-2 w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-2 shadow-sm ${isWorkspaceMode ? "" : "max-w-2xl"}`}
+                >
                   <img
                     src={previewUrl}
                     alt="CV Preview"
@@ -170,7 +179,7 @@ const FileUpload = memo(
             {!hideChangeButton && (
               <button
                 onClick={handleClick}
-                className="rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                className={`rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 ${isWorkspaceMode ? "w-full" : ""}`}
               >
                 Replace File
               </button>
@@ -178,25 +187,58 @@ const FileUpload = memo(
           </div>
         ) : (
           <>
-            <button
-              onClick={handleClick}
-              className={`
-              px-16 py-5 text-xl font-semibold text-white rounded-lg cursor-pointer
-              border-none shadow-lg transition-all duration-200
-              ${
-                isDragging
-                  ? "bg-blue-700 scale-105 shadow-xl"
-                  : "bg-[#e5322d] hover:bg-[#c62828] hover:shadow-xl"
-              }
-            `}
-            >
-              Select CV file
-            </button>
-            <p
-              className={`mt-4 text-sm ${isDragging ? "text-blue-600 font-medium" : "text-gray-500"}`}
-            >
-              or drop CV here
-            </p>
+            {isWorkspaceMode ? (
+              <div
+                className={`flex w-full flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-all ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50"}`}
+                style={{ minHeight: "420px" }}
+              >
+                <p className="text-lg font-semibold text-gray-900">
+                  Upload your CV file
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Drag and drop here, or use the button below.
+                </p>
+                <button
+                  onClick={handleClick}
+                  className={`
+                    mt-6 rounded-lg px-10 py-3 text-base font-semibold text-white shadow-md transition-all duration-200
+                    ${
+                      isDragging
+                        ? "bg-blue-700"
+                        : "bg-[#e5322d] hover:bg-[#c62828] hover:shadow-lg"
+                    }
+                  `}
+                >
+                  Select CV file
+                </button>
+                <p
+                  className={`mt-4 text-xs uppercase tracking-wide ${isDragging ? "text-blue-600" : "text-gray-400"}`}
+                >
+                  PDF, DOC, DOCX, JPG, PNG, WEBP
+                </p>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handleClick}
+                  className={`
+                    rounded-lg border-none px-16 py-5 text-xl font-semibold text-white shadow-lg transition-all duration-200
+                    ${
+                      isDragging
+                        ? "scale-105 bg-blue-700 shadow-xl"
+                        : "bg-[#e5322d] hover:bg-[#c62828] hover:shadow-xl"
+                    }
+                  `}
+                >
+                  Select CV file
+                </button>
+                <p
+                  className={`mt-4 text-sm ${isDragging ? "font-medium text-blue-600" : "text-gray-500"}`}
+                >
+                  or drop CV here
+                </p>
+              </>
+            )}
           </>
         )}
       </div>
